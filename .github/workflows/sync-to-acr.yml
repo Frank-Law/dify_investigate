@@ -1,0 +1,34 @@
+name: Sync Docker Image to Aliyun ACR
+
+on:
+  push:    
+    branches:
+      - main  # 可增加其他分支触发条件
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤1: 检出代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 步骤2: 登录阿里云ACR
+      - name: Login to Aliyun ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USER }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+
+      # 步骤3: 构建并推送镜像
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ALIYUN_REGISTRY }}/{{ secrets.ALIYUN_NAME_SPACE}}/dify:${{ github.ref_name }}
+            ${{ secrets.ALIYUN_REGISTRY }}/{{ secrets.ALIYUN_NAME_SPACE}}/dify:latest
+          # 如果使用多架构构建需添加：
+          platforms: linux/amd64,linux/64
