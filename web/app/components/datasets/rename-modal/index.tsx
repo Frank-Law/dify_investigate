@@ -13,6 +13,7 @@ import Modal from '@/app/components/base/modal'
 import { ToastContext } from '@/app/components/base/toast'
 import type { DataSet } from '@/models/datasets'
 import { updateDatasetSetting } from '@/service/datasets'
+import { noop } from 'lodash-es'
 
 type RenameDatasetModalProps = {
   show: boolean
@@ -27,8 +28,8 @@ const RenameDatasetModal = ({ show, dataset, onSuccess, onClose }: RenameDataset
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState<string>(dataset.name)
   const [description, setDescription] = useState<string>(dataset.description)
-  const [externalKnowledgeId, setExternalKnowledgeId] = useState<string>(dataset.external_knowledge_info.external_knowledge_id)
-  const [externalKnowledgeApiId, setExternalKnowledgeApiId] = useState<string>(dataset.external_knowledge_info.external_knowledge_api_id)
+  const externalKnowledgeId = dataset.external_knowledge_info.external_knowledge_id
+  const externalKnowledgeApiId = dataset.external_knowledge_info.external_knowledge_api_id
 
   const onConfirm: MouseEventHandler = async () => {
     if (!name.trim()) {
@@ -54,7 +55,7 @@ const RenameDatasetModal = ({ show, dataset, onSuccess, onClose }: RenameDataset
         onSuccess()
       onClose()
     }
-    catch (e) {
+    catch {
       notify({ type: 'error', message: t('common.actionMsg.modifiedUnsuccessfully') })
     }
     finally {
@@ -66,11 +67,13 @@ const RenameDatasetModal = ({ show, dataset, onSuccess, onClose }: RenameDataset
     <Modal
       className='w-[520px] max-w-[520px] rounded-xl px-8 py-6'
       isShow={show}
-      onClose={() => { }}
+      onClose={noop}
     >
-      <div className='relative pb-2 text-xl font-medium leading-[30px] text-text-primary'>{t('datasetSettings.title')}</div>
-      <div className='absolute right-4 top-4 cursor-pointer p-2' onClick={onClose}>
-        <RiCloseLine className='h-4 w-4 text-text-tertiary' />
+      <div className='flex items-center justify-between pb-2'>
+        <div className='text-xl font-medium leading-[30px] text-text-primary'>{t('datasetSettings.title')}</div>
+        <div className='cursor-pointer p-2' onClick={onClose}>
+          <RiCloseLine className='h-4 w-4 text-text-tertiary' />
+        </div>
       </div>
       <div>
         <div className={cn('flex flex-wrap items-center justify-between py-4')}>

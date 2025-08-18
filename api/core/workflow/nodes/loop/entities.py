@@ -1,9 +1,39 @@
-from typing import Any, Literal, Optional
+from collections.abc import Mapping
+from typing import Annotated, Any, Literal, Optional
 
-from pydantic import Field
+from pydantic import AfterValidator, BaseModel, Field
 
+from core.variables.types import SegmentType
 from core.workflow.nodes.base import BaseLoopNodeData, BaseLoopState, BaseNodeData
 from core.workflow.utils.condition.entities import Condition
+
+_VALID_VAR_TYPE = frozenset(
+    [
+        SegmentType.STRING,
+        SegmentType.NUMBER,
+        SegmentType.OBJECT,
+        SegmentType.ARRAY_STRING,
+        SegmentType.ARRAY_NUMBER,
+        SegmentType.ARRAY_OBJECT,
+    ]
+)
+
+
+def _is_valid_var_type(seg_type: SegmentType) -> SegmentType:
+    if seg_type not in _VALID_VAR_TYPE:
+        raise ValueError(...)
+    return seg_type
+
+
+class LoopVariableData(BaseModel):
+    """
+    Loop Variable Data.
+    """
+
+    label: str
+    var_type: Annotated[SegmentType, AfterValidator(_is_valid_var_type)]
+    value_type: Literal["variable", "constant"]
+    value: Optional[Any | list[str]] = None
 
 
 class LoopNodeData(BaseLoopNodeData):
@@ -14,11 +44,21 @@ class LoopNodeData(BaseLoopNodeData):
     loop_count: int  # Maximum number of loops
     break_conditions: list[Condition]  # Conditions to break the loop
     logical_operator: Literal["and", "or"]
+    loop_variables: Optional[list[LoopVariableData]] = Field(default_factory=list[LoopVariableData])
+    outputs: Optional[Mapping[str, Any]] = None
 
 
 class LoopStartNodeData(BaseNodeData):
     """
     Loop Start Node Data.
+    """
+
+    pass
+
+
+class LoopEndNodeData(BaseNodeData):
+    """
+    Loop End Node Data.
     """
 
     pass
